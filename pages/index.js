@@ -1,60 +1,36 @@
 import { Box, Button, Text, TextField, Image } from "@skynexui/components";
+import { useRouter } from "next/router";
+import { useState } from "react";
 import appConfig from "../config.json";
 
-function GlobalStyle() {
+function Titulo(props) {
+  const Tag = props.tag;
   return (
-    <style global jsx>{`
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        list-style: none;
-      }
-
-      body {
-        font-family: "Open Sans", sans-serif;
-      }
-
-      /* App fit Height */
-      html,
-      body,
-      #__next {
-        min-height: 100vh;
-        display: flex;
-        flex: 1;
-      }
-      #__next {
-        flex: 1;
-      }
-      #__next > * {
-        flex: 1;
-      }
-      /* ./App fit Height */
-    `}</style>
+    <>
+      <Tag>{props.children}</Tag>
+      <style jsx>{`
+        ${Tag} {
+          color: ${appConfig.theme.colors.neutrals["200"]};
+          font-size: 24px;
+          font-weight: 600;
+        }
+      `}</style>
+    </>
   );
 }
 
-function Titulo(props) {
-    const Tag = props.tag;
-    return (
-      <>
-        <Tag>{props.children}</Tag>
-        <style jsx>{`
-          ${Tag} {
-            color: ${appConfig.theme.colors.neutrals["200"]};
-            font-size: 24px;
-            font-weight: 600;
-          }
-        `}</style>
-      </>
-    );
-}
-
 export default function PaginaInicial() {
-  const username = "gustavotempesta";
+  const [username, setUserName] = useState("gustavotempesta");
+  const roteamento = useRouter();
+
+  function validaUserName(username) {
+    if (username.length > 2) {
+      return `https://github.com/${username}.png`;
+    }
+  }
+
   return (
     <>
-      <GlobalStyle />
       <Box
         styleSheet={{
           display: "flex",
@@ -89,6 +65,11 @@ export default function PaginaInicial() {
           {/* Formulário */}
           <Box
             as="form"
+            onSubmit={function (event) {
+              event.preventDefault();
+              //define a próxima página após o submit
+              roteamento.push("/chat");
+            }}
             styleSheet={{
               display: "flex",
               flexDirection: "column",
@@ -111,6 +92,14 @@ export default function PaginaInicial() {
             </Text>
 
             <TextField
+              value={username}
+              onChange={function (event) {
+                // onde tá o valor
+                const valor = event.target.value;
+                // troca o valor da variável
+                // através do React e avise quem precisa
+                setUserName(valor);
+              }}
               fullWidth
               textFieldColors={{
                 neutral: {
@@ -123,7 +112,7 @@ export default function PaginaInicial() {
             />
             <Button
               type="submit"
-              label="Entrar"
+              label="Embarcar"
               fullWidth
               buttonColors={{
                 contrastColor: appConfig.theme.colors.neutrals["000"],
@@ -156,7 +145,7 @@ export default function PaginaInicial() {
                 borderRadius: "50%",
                 marginBottom: "16px",
               }}
-              src={`https://github.com/${username}.png`}
+              src={validaUserName(username)}
             />
             <Text
               variant="body4"
