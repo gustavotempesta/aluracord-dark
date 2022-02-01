@@ -1,6 +1,6 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
-import { useState } from 'react/cjs/react.development';
+import { useState } from "react";
 import appConfig from '../config.json';
 
 export default function ChatPage() {
