@@ -70,7 +70,7 @@ function NotFound() {
                 >
                   <Text
                     styleSheet={{
-                      color: appConfig.theme.colors.primary[500],
+                      color: appConfig.theme.colors.primary[600],
                       cursor: "pointer",
                     }}
                   >

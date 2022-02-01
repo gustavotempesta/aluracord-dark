@@ -80,7 +80,7 @@ export default function PaginaInicial() {
               marginBottom: "32px",
             }}
           >
-            <Titulo tag="h2">Uma jornada através do tempo...</Titulo>
+            <Titulo tag="h2">Uma jornada através do tempo</Titulo>
             <Text
               variant="body3"
               styleSheet={{
