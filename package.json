@@ -14,5 +14,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
+  },
+  "devDependencies": {
+    "react-test-renderer": "^18.0.0-rc.0-next-fa816be7f-20220128"
   }
 }
