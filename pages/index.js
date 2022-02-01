@@ -109,8 +109,7 @@ export default function PaginaInicial() {
                   backgroundColor: appConfig.theme.colors.neutrals[800],
                 },
               }}
-            />
-            <Button
+            />            <Button
               type="submit"
               label="Embarcar"
               fullWidth
@@ -121,6 +120,7 @@ export default function PaginaInicial() {
                 mainColorStrong: appConfig.theme.colors.primary[600],
               }}
             />
+
           </Box>
           {/* Formulário */}
 
