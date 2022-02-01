@@ -240,15 +240,13 @@ function ExibeMensagens(lista) {
                     >
 
                         <Image
-                            style={{
-                                width: largura,
-                                height: altura,
-                                transitionDuration: "1s",
-                            }}
                             styleSheet={{
                                 borderRadius: '50%',
                                 display: 'inline-block',
                                 marginRight: '8px',
+                                width: largura,
+                                height: altura,
+                                transitionDuration: "1s",
                             }}
                             src={`https://github.com/${mensagem.de}.png`}
                         />
