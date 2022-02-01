@@ -1,7 +1,12 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from "react";
 import appConfig from '../config.json';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0Mzc0MDkwNCwiZXhwIjoxOTU5MzE2OTA0fQ.Q-qTVBxF_LWiJ_POk7H0rQ64OJU0YeYmetg2xo2vwj0";
+const SUPABASE_URL = "https://eehoiicdcplryquagyzs.supabase.co";
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
     /*
@@ -21,6 +26,17 @@ export default function ChatPage() {
     const [mensagem, setMensagem] = useState("");
     const [listaDeMensagens, setListaDeMensagens] = useState([]);
 
+    useEffect(() => {
+        supabaseClient
+            .from("mensagens")
+            .select("*")
+            //.order("id", {ascending:false})
+            .then((dados) => { // .then({ data })
+                setListaDeMensagens(dados.data);
+            });
+    }, [])
+
+
 
     function handleNovaMensagem(novaMensagem) {
         // precisa passar o array com os valores que já tinha e o novo item
@@ -31,11 +47,18 @@ export default function ChatPage() {
             de: 'gustavotempesta',
             texto: novaMensagem,
         }
-        setListaDeMensagens([
-            ...listaDeMensagens,
-            mensagem,
-        ]);
-        setMensagem("");
+
+        supabaseClient
+            .from("mensagens")
+            .insert([mensagem])
+            .then((dados) => {
+                setListaDeMensagens([
+                    ...listaDeMensagens,
+                    dados.data[0],
+                ]);
+                setMensagem("");
+            })
+
     }
 
     return (
@@ -123,9 +146,9 @@ export default function ChatPage() {
                                 mainColorLight: appConfig.theme.colors.primary[400],
                                 mainColorStrong: appConfig.theme.colors.primary[600],
                             }}
-                            onClick={(event)=>{
+                            onClick={(event) => {
                                 event.preventDefault();
-                                if (mensagem.length > 0){
+                                if (mensagem.length > 0) {
                                     handleNovaMensagem(mensagem);
                                 }
                             }}
@@ -168,56 +191,84 @@ function MessageList(props) {
                 flex: 1,
                 color: appConfig.theme.colors.neutrals["000"],
                 marginBottom: '16px',
-            }}
-        >
+            }}>
 
-            {lista.map((mensagem) => {
-                return (
-                    <Text
-                        key={mensagem.id}
-                        tag="li"
+            {ExibeMensagens(lista)}
+
+        </Box>
+    )
+}
+
+function ExibeMensagens(lista) {
+    const [largura, setLargura] = useState("20px");
+    const [altura, setAltura] = useState("20px")
+
+    while (lista.length == 0) {
+        return (
+            <p style={{ color: appConfig.theme.colors.primary[400] }}>
+                Acionando máquina do tempo...
+            </p>
+        )
+    }
+    return (
+        lista.map((mensagem) => {
+            return (
+                <Text
+                    onMouseOver={(event) => {
+                        setLargura("40px");
+                        setAltura("40px")                                
+                    }}
+                    onMouseLeave={(event)=>{
+                        setLargura("20px");
+                        setAltura("20px")
+                    }}
+                    key={mensagem.id}
+                    tag="li"
+                    styleSheet={{
+                        borderRadius: '5px',
+                        padding: '6px',
+                        marginBottom: '12px',
+                        hover: {
+                            backgroundColor: appConfig.theme.colors.neutrals[700],
+                        }
+                    }}
+                >
+                    <Box
                         styleSheet={{
-                            borderRadius: '5px',
-                            padding: '6px',
-                            marginBottom: '12px',
-                            hover: {
-                                backgroundColor: appConfig.theme.colors.neutrals[700],
-                            }
+                            marginBottom: '8px',
                         }}
                     >
-                        <Box
-                            styleSheet={{
-                                marginBottom: '8px',
+
+                        <Image
+                            style={{
+                                width: largura,
+                                height: altura,
+                                transitionDuration: "1s",
                             }}
+                            styleSheet={{
+                                borderRadius: '50%',
+                                display: 'inline-block',
+                                marginRight: '8px',
+                            }}
+                            src={`https://github.com/${mensagem.de}.png`}
+                        />
+                        <Text tag="strong">
+                            {mensagem.de}
+                        </Text>
+                        <Text
+                            styleSheet={{
+                                fontSize: '10px',
+                                marginLeft: '8px',
+                                color: appConfig.theme.colors.neutrals[300],
+                            }}
+                            tag="span"
                         >
-                            <Image
-                                styleSheet={{
-                                    width: '20px',
-                                    height: '20px',
-                                    borderRadius: '50%',
-                                    display: 'inline-block',
-                                    marginRight: '8px',
-                                }}
-                                src={`https://github.com/${mensagem.de}.png`}
-                            />
-                            <Text tag="strong">
-                                {mensagem.de}
-                            </Text>
-                            <Text
-                                styleSheet={{
-                                    fontSize: '10px',
-                                    marginLeft: '8px',
-                                    color: appConfig.theme.colors.neutrals[300],
-                                }}
-                                tag="span"
-                            >
-                                {(new Date().toLocaleDateString())}
-                            </Text>
-                        </Box>
-                        {mensagem.texto}
-                    </Text>
-                );
-            })}
-        </Box>
+                            {(new Date().toLocaleDateString())}
+                        </Text>
+                    </Box>
+                    {mensagem.texto}
+                </Text>
+            );
+        })
     )
 }
