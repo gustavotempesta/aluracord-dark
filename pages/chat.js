@@ -3,10 +3,21 @@ import React, { useEffect } from 'react';
 import { useState } from "react";
 import appConfig from '../config.json';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/router';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0Mzc0MDkwNCwiZXhwIjoxOTU5MzE2OTA0fQ.Q-qTVBxF_LWiJ_POk7H0rQ64OJU0YeYmetg2xo2vwj0";
 const SUPABASE_URL = "https://eehoiicdcplryquagyzs.supabase.co";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+    supabaseClient
+        .from('mensagens')
+        .on("INSERT", (mensagemInserida) => {
+            adicionaMensagem(mensagemInserida.new);
+        })
+        .subscribe();
+}
 
 export default function ChatPage() {
     /*
@@ -22,43 +33,48 @@ export default function ChatPage() {
     - Usar onChange para capturar o valor do textarea e usar setState para atualizar valor da variável
     - Quando ocorrer um enter ou click no botão de enviar, deve salvar a mensagem na lista e apagar o campo textarea
     */
+    const roteamento = useRouter();
+    const usuarioLogado = roteamento.query.username;
 
     const [mensagem, setMensagem] = useState("");
     const [listaDeMensagens, setListaDeMensagens] = useState([]);
+    // uma boa estratégia de debug é utilizar o estado inicial do useState para injetar valores
 
+    // carrega mensagens do banco de dados (select)
     useEffect(() => {
         supabaseClient
             .from("mensagens")
             .select("*")
-            //.order("id", {ascending:false})
+            .order("id")
             .then((dados) => { // .then({ data })
                 setListaDeMensagens(dados.data);
             });
-    }, [])
+        escutaMensagensEmTempoReal((novaMensagem) => {
+            setListaDeMensagens((valorAtualDaLista) => {
+                return [
+                    ...valorAtualDaLista,
+                    novaMensagem,
+                ]
+            });
+        });
+    }, []);
 
 
-
+    // função que adiciona mensagem no banco de dados
     function handleNovaMensagem(novaMensagem) {
         // precisa passar o array com os valores que já tinha e o novo item
         // pra isso precisa primeiro espalhar os itens da lista com o ...
         // senão ele iria colocar um array dentro de outro
         const mensagem = {
             id: listaDeMensagens.length + 1,
-            de: 'gustavotempesta',
+            de: usuarioLogado,
             texto: novaMensagem,
         }
-
+        // faz o insert com a mensagem escrita e depois apaga a mensagem no textarea
         supabaseClient
             .from("mensagens")
             .insert([mensagem])
-            .then((dados) => {
-                setListaDeMensagens([
-                    ...listaDeMensagens,
-                    dados.data[0],
-                ]);
-                setMensagem("");
-            })
-
+            .then(setMensagem(""))
     }
 
     return (
@@ -133,11 +149,19 @@ export default function ChatPage() {
                                 color: appConfig.theme.colors.neutrals[200],
                             }}
                         />
+                        {/* CallBack */}
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) =>
+                                handleNovaMensagem(":sticker: " + sticker)
+                            }
+                        />
+
                         <Button
                             type="submit"
                             label="OK"
                             styleSheet={{
                                 borderRadius: '5px',
+                                marginLeft: '12px',
                                 padding: '6px 8px',
                             }}
                             buttonColors={{
@@ -216,9 +240,9 @@ function ExibeMensagens(lista) {
                 <Text
                     onMouseOver={(event) => {
                         setLargura("40px");
-                        setAltura("40px")                                
+                        setAltura("40px")
                     }}
-                    onMouseLeave={(event)=>{
+                    onMouseLeave={(event) => {
                         setLargura("20px");
                         setAltura("20px")
                     }}
@@ -264,7 +288,15 @@ function ExibeMensagens(lista) {
                             {(new Date().toLocaleDateString())}
                         </Text>
                     </Box>
-                    {mensagem.texto}
+                    {/* verifica se é sticker ou texto observando se inicia com :sticker: */}
+                    {mensagem.texto.startsWith(":sticker:")
+                        ? (
+                            <Image src={mensagem.texto.replace(":sticker:", "")} style={{ maxWidth: "200px" }} /> //retira a palavra sticker, sobrando só a url
+                        )
+                        : (
+                            mensagem.texto
+                        )}
+
                 </Text>
             );
         })

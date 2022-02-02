@@ -70,7 +70,8 @@ export default function PaginaInicial() {
             onSubmit={function (event) {
               event.preventDefault();
               //define a próxima página após o submit
-              roteamento.push("/chat");
+              roteamento.push(`/chat?username=${username}`);
+              // roteamento.push("/chat?username=" + username);
             }}
             styleSheet={{
               display: "flex",
